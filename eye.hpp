@@ -255,11 +255,25 @@ public:
   // Helper function that computes and returns the time elapsed (in milliseconds) from the time_point previousEventTime
   int GetTime(int WhichElapsedTime);
 
-  // Automatically adjust the gain of the camera.
+  /***************************************************************************
+  *  @brief: Automatically adjust the camera gain.
+  *         The idea is to sample the brightness of the pixels in the bottom half of visual field.
+  *         Then, using P control to adjust the camera gain
+  *         Currently not using, because it is a bit computational costy
+  ***************************************************************************/
   void AdjustCameraGain();
-  // Automatically adjust the transform function of bipolar cells.
+
+  /***************************************************************************
+  *  @brief: Automatically adjust the transform function of bipolar cells.
+  *         This function helps the both the bipoalr cells remain in a sweet margin to detect the ambient change
+  ***************************************************************************/
   void AdjustTFBC();
-  // Automatically adjust the transform function of OFFDSGC.
+ 
+ 
+   /***************************************************************************
+  *  @brief: Automatically adjust the transform function of DSGCs.
+  *         This function helps the both the DSGCs remain in a sweet margin to detect the ambient change
+  ***************************************************************************/
   void AdjustTFOFFDSGC(float DSGCSum);
 
   /* Setter functions */

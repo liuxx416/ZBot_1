@@ -127,9 +127,15 @@ std::cout << "******************************************************************
 			break;
 	}
 
-	// Set exposure... 10000 = 10 ms
-	//cam.SetExposureTime(2000);
-	//cam.SetGain(0);
+  /***************************************************************************
+  *  Explaination on the setting:
+  * Auto Gain: Although we tried to manually calcualte the gain, however, this method is with high computational cost.
+  * Auto Gain: The orignal method provided by XIMEA is already very good
+  * Auto Gain: We set the ROI to the bottom of the visual field, so that the robot can see the river bed clearly
+  * AUto Exposure: We have to set the fps to 50, consequently, the exposure time should be less than 20 ms, here, we manully limited it up to 15 ms
+  * Withe balance: Currently we are using the original auto withe balance function provided by XIMEA 
+  ***************************************************************************/
+
 	cam.EnableAutoExposureAutoGain();
 	cam.SetAutoGainTopLimit(20);
 	cam.SetAutoExposureTopLimit(15000);
@@ -140,14 +146,9 @@ std::cout << "******************************************************************
 	cam.SetAutoExposureAutoGainROIoffsetY(OFFSET_Y_LEFT);
 
 	cam.SetAutoExposureAutoGainROIHeight(ROI_HEIGHT);
-	//cam.SetAutoExposureAutoGainROIWidth(ROI_WIDTH);
+	//cam.SetAutoExposureAutoGainROIWidth(ROI_WIDTH); //not necessary
 	//cam.EnableAutoExposureAutoGain();
 	//cam.EnableHDR();
-
-	// Set the camera gain
-	//cam.SetGain(10);
-
-	// Set white balance mode
 	cam.EnableWhiteBalanceAuto();
 
 	// Set acquisition timing modeXI_ACQ_TIMING_MODE_FRAME_RATE
@@ -532,14 +533,7 @@ cv::Mat Eye::CurrentFrame(int WhichFrame)
 	{
       		for (int j = GAPbi; j < ROI_WIDTH-GAP-GAPbi; j = j + GAP)
 		{
-//			OFF_DSC_input_unfilted = OFF_BC[i][j] - lastOFF_BC[i+offset_row][j+(flip*offset_col)] * weight_iBCs;
 			OFF_DSC_input_unfilted = OFF_BC[i][j] - lastOFF_BC[i+offset_row][j+(flip*offset_col)] * weight_iBCs * 1 - lastOFF_BC[i+offset_row * 2][j+(flip*offset_col * 2)] * weight_iBCs * 0.5;
-
-			// Maybe we have to modify the range of the image e.g. i = GABbi + 1
-			//OFF_DSC_input_unfilted = 0.2 * (OFF_BC[i][j] + OFF_BC[i][j + 1] + OFF_BC[i][j - 1] + OFF_BC[i + 1][j] + OFF_BC[i - 1][j])
-			// - 0.2 * (lastOFF_BC[i+offset_row][j+(flip*offset_col)] + lastOFF_BC[i+offset_row][j+(flip*offset_col) + 1] + lastOFF_BC[i+offset_row][j+(flip*offset_col) - 1] + lastOFF_BC[i+offset_row + 1][j+(flip*offset_col)]　+ lastOFF_BC[i+offset_row - 1][j+(flip*offset_col)]) * weight_iBCs * 0.5 
-			// - 0.2 * (lastOFF_BC[i+offset_row * 2][j+(flip*offset_col * 2)] + lastOFF_BC[i+offset_row * 2][j+(flip*offset_col * 2 + 1) + lastOFF_BC[i+offset_row * 2][j+(flip*offset_col * 2 - 1) + lastOFF_BC[i+offset_row * 2 + 1][j+(flip*offset_col * 2)] + lastOFF_BC[i+offset_row * 2 - 1][j+(flip*offset_col * 2)]) * weight_iBCs * 0.5;
-
 
 			OFF_DSC_input[i][j] = OFF_DSC_input[i][j] * 0 + OFF_DSC_input_unfilted * 1; 
 			OFF_DSC[i][j] = OFF_DSC[i][j] * 0 + 1 / (1 + pow(E_N, -omega_OFF_DSC * (OFF_DSC_input[i][j] - bias_OFF_DSC))) * 1;
@@ -579,29 +573,10 @@ cv::Mat Eye::CurrentFrame(int WhichFrame)
 	}
 	mutex_img_access.unlock();
 	
-	//if (currentExposureTime > upLimitExposureTime - 10)
-	//{
 	newGain = currentGain - (brightnessSampleSum / counterSample - 96)/128/2;
 	if (newGain > 20){newGain = 20;}
 	else if (newGain < lowLimitGain){newGain = lowLimitGain;}
 	else  {newGain = newGain;}
-	//cam.SetGain(newGain);
-	//std::this_thread::sleep_for(std::chrono::milliseconds(20));
-	//cam.SetExposureTime(upLimitExposureTime);
-	//}
-	
-	//Set the new exposure time.
-	//if (currentGain < lowLimitGain + 0.1)
-	//else
-	//{
-	//newExposureTime = currentExposureTime - 100 * (brightnessSampleSum / counterSample - 96)/128/2;
-	//if (newExposureTime > upLimitExposureTime) newExposureTime = upLimitExposureTime;
-	//else if (newExposureTime < 1000) newExposureTime = 1000;
-	//else newExposureTime = newExposureTime;
-	//cam.SetGain(lowLimitGain);
-	//cam.SetExposureTime(newExposureTime);
-	//cam.SetExposureTime(1000);
-	//}
 	
 
 	switch (EYE_ORIENTATION)

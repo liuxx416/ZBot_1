@@ -394,7 +394,7 @@ void Envirobot::MoveMotors(int startup, int ex_time_s)
     else SwimmingMode = 0;
     
   if (SwimmingMode == 1)
-  phase = phase - 1.00  * (double)control_step_fixed / 1000.0 * 2.0 * M_PI;
+  phase = phase - 1.0  * (double)control_step_fixed / 1000.0 * 2.0 * M_PI;
   else if (SwimmingMode == 2)
   {  
   float AmpPhase = 0.3 * (50 - ADInputValues_Motor[1])/50 + 0.7;
@@ -413,7 +413,7 @@ if (SwimmingMode == 1)
 {
     // Shishi-odoshi modules added for burst-gliding swimming.
     // The following line has been used while performing the experiments (to make the bouts more frequent)
-    if (SS_MLF > 160) //20 ->  1s
+    if (SS_MLF > 100) //20 ->  1s
     //if (SS_MLF > 255)
     {
       // The behaviour of the robot is determined taking into account the values assumed by LMLF, RMLF, LLHB, RLHB
@@ -472,7 +472,7 @@ if (SwimmingMode == 1)
     if (SS_MLF_countdown > 46) // Bout action in progress
     {
       bout_flag = 1;
-      SS_MLF_countdown = SS_MLF_countdown * (0.9772 + noise_SS_MLF_deduction_rate);
+      SS_MLF_countdown = SS_MLF_countdown * (0.9908 + noise_SS_MLF_deduction_rate);
       current_swim = SS_MLF_countdown / 400;
       left_descending_amplitude = 1.0 * SS_MLF_countdown / 400; 
       right_descending_amplitude = 1.0 * SS_MLF_countdown / 400;
@@ -481,7 +481,7 @@ if (SwimmingMode == 1)
       {
         // The values of the ventromedial Spinal Projection Neurons (vSPNs) are computed
         // taking into account that the robot is turning left
-        current_LVSPNs = (1.0 + noise_turning_LSPN) * SS_LVSPNs_countdown / 400;
+        current_LVSPNs = (0.8 + noise_turning_LSPN) * SS_LVSPNs_countdown / 400;
         current_RVSPNs = (0.0 + noise_turning_RSPN) * SS_RVSPNs_countdown / 400;
       }
       else if (command == 0) // The robot is swimming forward
@@ -496,7 +496,7 @@ if (SwimmingMode == 1)
         // The values of the ventromedial Spinal Projection Neurons (vSPNs) are computed
         // taking into account that the robot is turning right
         current_LVSPNs = (0.0 + noise_turning_LSPN) * SS_LVSPNs_countdown / 400;
-        current_RVSPNs = (1.0 + noise_turning_RSPN) * SS_RVSPNs_countdown / 400;
+        current_RVSPNs = (0.8 + noise_turning_RSPN) * SS_RVSPNs_countdown / 400;
       }
 
       SS_LVSPNs_countdown = SS_LVSPNs_countdown * 0.935;
@@ -504,7 +504,7 @@ if (SwimmingMode == 1)
     }
    else if (SS_MLF_countdown > 40) //if the amplitude is small enough, reduce all amplitude to 0 (zero)
    {
-      SS_MLF_countdown = SS_MLF_countdown * (0.9772 + noise_SS_MLF_deduction_rate);
+      SS_MLF_countdown = SS_MLF_countdown * (0.9908 + noise_SS_MLF_deduction_rate);
       bout_flag = 1;
       current_swim = current_swim * 0.8;
       current_LVSPNs = current_LVSPNs * 0.8;
@@ -1183,16 +1183,8 @@ else
     
     counter_exp = counter_exp + 1;
     
-    /// Log files for the experiments
-    /// LMLF, RMLF, LLHB, RLHB
-    //log_fileLMLF << LMLF << std::endl;
-    //log_fileRMLF << RMLF << std::endl;
-    //log_fileLLHB << LLHB << std::endl;
-    //log_fileRLHB << RLHB << std::endl;
-    
     /// Log file for the experiments
     fprintf(log_file, "%d \t \t %0.2f \t %0.2f \t %0.2f \t %0.2f \t \t %0.2f \t %0.2f \t %0.2f \t %0.2f \t \t %0.2f \t %0.2f \t %0.2f \t %0.2f \t %0.2f \t %0.2f \t %0.2f \t %0.2f \t %0.2f \t \t %0.2f \t % 0.2f \t %0.2f \t %0.2f \t %0.2f \t %0.2f \t %0.2f \t %0.2f \t %0.2f  \t \t %0.2f \t %0.2f \t %0.2f \t %0.2f \n", counter_exp, LPT_R_0, LPT_R_1, LPT_R_2, LPT_R_3, RPT_L_0, RPT_L_1, RPT_L_2, RPT_L_3, read_LOB, read_LB, read_LIB, read_LIOB, read_LIMM, read_LMM, read_LOML, read_LS, LTT, read_ROB, read_RB, read_RIB, read_RIOB, read_RIMM, read_RMM, read_ROML, read_RS, RTT, LMLF, RMLF, LLHB, RLHB);
-//    std::cout << "counter_exp = " << counter_exp << std::endl;
 
     // This part can be calculated and displayed if it is useful for demo purposes uncommenting the following lines
     /*
@@ -1204,7 +1196,7 @@ else
 	//if (20 - time_elapsed > 0)
 	//    std::this_thread::sleep_for(std::chrono::milliseconds(20 - int(time_elapsed)));    
   }
-  while ((!startup) && (TimeElapsed_(globalStartTime) < ex_time_s*1000)  && (stop_from_GUI == 0));
+  while ((!startup) && (TimeElacdpsed_(globalStartTime) < ex_time_s*1000)  && (stop_from_GUI == 0));
 }
 
 
@@ -1218,8 +1210,18 @@ void Envirobot::Cycle(int ex_time_s, int GUI_FLAG, std::string IPv4_to_contact)
   {
     cvMjpegServer.SetSource(cvsource);
   }
-  
-  // Functions to initialise the values of the neurons and the acquired frames
+
+/***************************************************************************
+ * Functions to initialise the values of the neurons and the acquired frames
+ * Thread 1 and 2: left eye and right eye thread
+ * Thread 3: Brain thread
+ * Thread 4: Motor thread
+ * Thread 3: Brain thread
+ * Thread 4: Motor thread  
+ * Thread 5: GUI thread
+ * Thread 6: Assistant thread (e.g. containing remote controling thread)
+ * Thread 7: PowerMeter thread
+***************************************************************************/
 //  Envirobot::UpdateVisualInformation(&d_eyes[0], 1, ex_time_s, GUI_FLAG, IPv4_to_contact);
 //  Envirobot::UpdateVisualInformation(&d_eyes[1], 1, ex_time_s, GUI_FLAG, IPv4_to_contact);
   Envirobot::ExecuteOMR_and_GetTargetMotorPosition(1, ex_time_s, GUI_FLAG, IPv4_to_contact);
@@ -1238,7 +1240,6 @@ void Envirobot::Cycle(int ex_time_s, int GUI_FLAG, std::string IPv4_to_contact)
   //  std::thread th2(&Envirobot::UpdateVisualInformation, this, &d_eyes[1], 0, ex_time_s, GUI_FLAG, IPv4_to_contact);
     std::thread th3(&Envirobot::ExecuteOMR_and_GetTargetMotorPosition, this, 0, ex_time_s, GUI_FLAG, IPv4_to_contact);
     std::thread th4(&Envirobot::MoveMotors, this, 0, ex_time_s);
-   // std::thread th7(&Envirobot::PowerMeterThread, this, 0, ex_time_s, GUI_FLAG, IPv4_to_contact);   
     std::thread th6(&Envirobot::AssistanceThread, this, 0, ex_time_s, GUI_FLAG, IPv4_to_contact);
     std::thread th7(&Envirobot::PowerMeterThread, this, 0, ex_time_s, GUI_FLAG, IPv4_to_contact);
     //th1.join();
@@ -1277,40 +1278,6 @@ void Envirobot::Stop()
   // Close the motors
   CloseMotors();
 
-  
-  /// Log files for the experiments
-  /// Direction Selective Cells in Pretectum
-  //log_fileDSGCR0.close();
-  //log_fileDSGCR1.close();
-  //log_fileDSGCR2.close();
-  //log_fileDSGCR3.close();
-  //log_fileDSGCL0.close();
-  //log_fileDSGCL1.close();
-  //log_fileDSGCL2.close();
-  //log_fileDSGCL3.close();
-  /// Direction Selective Cells in late Pretectum
-  //log_fileLB.close();
-  //log_fileLIB.close();
-  //log_fileLIOB.close();
-  //log_fileLMM.close();
-  //log_fileLIMM.close();
-  //log_fileLOML.close();
-  //log_fileLS.close();
-  //log_fileLOB.close();
-  //log_fileRB.close();
-  //log_fileRIB.close();
-  //log_fileRIOB.close();
-  //log_fileRMM.close();
-  //log_fileRIMM.close();
-  //log_fileROML.close();
-  //log_fileRS.close();
-  //log_fileROB.close();
-  /// LMLF, RMLF, LLHB, RLHB
-  //log_fileLMLF.close();
-  //log_fileRMLF.close();
-  //log_fileLLHB.close();
-  //log_fileRLHB.close();
-  /// All the neurons
   fclose(log_file);
   fclose(log_file_MOTORS);
   fclose(log_file_PowerMeter);
