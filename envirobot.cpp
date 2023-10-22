@@ -393,35 +393,27 @@ void Envirobot::MoveMotors(int startup, int ex_time_s)
     else if (ADInputValues_Motor[2] > -25)  SwimmingMode = 2;											//Continues swimming
     else SwimmingMode = 0;
     
-  if (0 && SwimmingMode == 1) //orignially used for bout and gliding swimming, here we do not use it
-  phase = phase - 1.0  * (double)control_step_fixed / 1000.0 * 2.0 * M_PI;
- 
-  else if (SwimmingMode == 1) //continues swimming, for testing the tail-beating frequency and amplitude on the swimmming behavior
-  {  
-  float AmpPhase = 1.0; //unit Hz
-  AmpPhase = clamp (AmpPhase, 0, 1);
-  phase = phase - 1 * (double)control_step_fixed / 1000.0 * AmpPhase * 2.0 * M_PI;
-  }
-
-  else if (SwimmingMode == 2) //continues swimming, for moving and locating the robot in the water
+  if (SwimmingMode == 1)
+  phase = phase - 1.00  * (double)control_step_fixed / 1000.0 * 2.0 * M_PI;
+  else if (SwimmingMode == 2)
   {  
   float AmpPhase = 0.3 * (50 - ADInputValues_Motor[1])/50 + 0.7;
   AmpPhase = clamp (AmpPhase, 0, 1);
   phase = phase - 1 * (double)control_step_fixed / 1000.0 * AmpPhase * 2.0 * M_PI;
   }
-  else phase = phase; //stop the robot
-
-
+  else phase = phase;
+  
+  
   if (phase < -2000000)
   {
   phase = 0;
   }
 
-if (0 && SwimmingMode == 1)
+if (SwimmingMode == 1)
 {
     // Shishi-odoshi modules added for burst-gliding swimming.
     // The following line has been used while performing the experiments (to make the bouts more frequent)
-    if (SS_MLF > 100) //20 ->  1s
+    if (SS_MLF > 160) //20 ->  1s
     //if (SS_MLF > 255)
     {
       // The behaviour of the robot is determined taking into account the values assumed by LMLF, RMLF, LLHB, RLHB
@@ -480,7 +472,7 @@ if (0 && SwimmingMode == 1)
     if (SS_MLF_countdown > 46) // Bout action in progress
     {
       bout_flag = 1;
-      SS_MLF_countdown = SS_MLF_countdown * (0.9908 + noise_SS_MLF_deduction_rate);
+      SS_MLF_countdown = SS_MLF_countdown * (0.9772 + noise_SS_MLF_deduction_rate);
       current_swim = SS_MLF_countdown / 400;
       left_descending_amplitude = 1.0 * SS_MLF_countdown / 400; 
       right_descending_amplitude = 1.0 * SS_MLF_countdown / 400;
@@ -489,7 +481,7 @@ if (0 && SwimmingMode == 1)
       {
         // The values of the ventromedial Spinal Projection Neurons (vSPNs) are computed
         // taking into account that the robot is turning left
-        current_LVSPNs = (0.8 + noise_turning_LSPN) * SS_LVSPNs_countdown / 400;
+        current_LVSPNs = (1.0 + noise_turning_LSPN) * SS_LVSPNs_countdown / 400;
         current_RVSPNs = (0.0 + noise_turning_RSPN) * SS_RVSPNs_countdown / 400;
       }
       else if (command == 0) // The robot is swimming forward
@@ -504,7 +496,7 @@ if (0 && SwimmingMode == 1)
         // The values of the ventromedial Spinal Projection Neurons (vSPNs) are computed
         // taking into account that the robot is turning right
         current_LVSPNs = (0.0 + noise_turning_LSPN) * SS_LVSPNs_countdown / 400;
-        current_RVSPNs = (0.8 + noise_turning_RSPN) * SS_RVSPNs_countdown / 400;
+        current_RVSPNs = (1.0 + noise_turning_RSPN) * SS_RVSPNs_countdown / 400;
       }
 
       SS_LVSPNs_countdown = SS_LVSPNs_countdown * 0.935;
@@ -512,7 +504,7 @@ if (0 && SwimmingMode == 1)
     }
    else if (SS_MLF_countdown > 40) //if the amplitude is small enough, reduce all amplitude to 0 (zero)
    {
-      SS_MLF_countdown = SS_MLF_countdown * (0.9908 + noise_SS_MLF_deduction_rate);
+      SS_MLF_countdown = SS_MLF_countdown * (0.9772 + noise_SS_MLF_deduction_rate);
       bout_flag = 1;
       current_swim = current_swim * 0.8;
       current_LVSPNs = current_LVSPNs * 0.8;
@@ -539,37 +531,6 @@ if (0 && SwimmingMode == 1)
     RVSPNs_output = last_RVSPNs * 0.95 + current_RVSPNs * 0.05;   
     left_amplitude = left_swim_amplitude;
     right_amplitude = right_swim_amplitude;
-}
-else if (SwimmingMode == 1) //Continues swimming
-{
-    float  ReluADInputValues_Motor1 = 0;
-    if (ADInputValues_Motor[1] > 25)ReluADInputValues_Motor1 = 50; //Stop the motors if the stick is close to the middle 
-    else ReluADInputValues_Motor1 = 0; //Set the desired amplitude if the stick is set forward
-
-    float tail_beating_amplitude = 0.1 * 1.25;   //1.25 is 100 %
-    left_amplitude = left_amplitude * 0.965 + tail_beating_amplitude * (50 - ReluADInputValues_Motor1) * 0.02 * 0.035;
-    right_amplitude = right_amplitude * 0.965 + tail_beating_amplitude * (50 - ReluADInputValues_Motor1) * 0.02 * 0.035;
-    //LMLF = 0; 
-    //RMLF = 0;
-    if (ADInputValues_Motor[0] - 50 >= 0)
-    {
-    	LVSPNs_output = LVSPNs_output * 0.965 - (ADInputValues_Motor[0] - 50) * 0.012 * 0.035;
-    	RVSPNs_output = RVSPNs_output * 0.965 + (ADInputValues_Motor[0] - 50) * 0.012 * 0.035;
-    }
-    else if (ADInputValues_Motor[0] - 50 < 0)
-    {
-    	LVSPNs_output = LVSPNs_output * 0.965 - (ADInputValues_Motor[0] - 50) * 0.012 * 0.035;
-    	RVSPNs_output = RVSPNs_output * 0.965 + (ADInputValues_Motor[0] - 50) * 0.012 * 0.035;
-    }
-    
-    if (LVSPNs_output < 0) LVSPNs_output = 0;
-    else if (LVSPNs_output > 0.5) LVSPNs_output = 0.5;
-    if (RVSPNs_output < 0) RVSPNs_output = 0;
-    else if (RVSPNs_output > 0.5) RVSPNs_output = 0.5; 
-    
-    bout_flag = 1;
-    first_bend_flag = first_bend_flag;
-    phase = phase;    
 }
 
 else if (SwimmingMode == 2) //Continues swimming
@@ -602,8 +563,6 @@ else if (SwimmingMode == 2) //Continues swimming
     first_bend_flag = first_bend_flag;
     phase = phase;    
 }
-
-
 
 else //Other mode (e.g. mode 0, stop)
 {
